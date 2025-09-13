@@ -608,8 +608,6 @@ https://github.com/elecfreaks/pxt-xgo-rider/blob/main/main.ts
 
 //##########  BEGIN XGO  ##########//
 
-serial.redirect(SerialPin.P14, SerialPin.P13, BaudRate.BaudRate115200)
-
 namespace xgo {
     let headData = 0x5500
     let tailData = 0x00AA
@@ -755,7 +753,7 @@ namespace xgo {
     }
 }
 
-xgo.initXGOSerial(SerialPin.P13, SerialPin.P14)
+xgo.initXGOSerial(SerialPin.P14, SerialPin.P13)
 
 
 //##########  END XGO  ##########//
