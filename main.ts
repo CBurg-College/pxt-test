@@ -271,8 +271,8 @@ function blueValue(rgb: number): number {
 //////////////////////
 
 enum Joystick {
-    //% block="none"
-    //% block.loc.nl="geen"
+    //% block="no direction"
+    //% block.loc.nl="geen richting"
     None,
     //% block="up"
     //% block.loc.nl="omhoog"
