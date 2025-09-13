@@ -728,19 +728,19 @@ namespace xgo {
 
         data = fromColor(color)
 
-        if (leds & Led.FrontRight) {
+        if (leds & Led.FrontLeft) {
             addr = 0x69
             writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
         }
-        if (leds & Led.RearRight) {
+        if (leds & Led.RearLeft) {
             addr = 0x6A
             writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
         }
-        if (leds & Led.RearLeft) {
+        if (leds & Led.RearRight) {
             addr = 0x6B
             writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
         }
-        if (leds & Led.FrontLeft) {
+        if (leds & Led.FrontRight) {
             addr = 0x6C
             writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
         }
