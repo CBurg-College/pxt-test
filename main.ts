@@ -728,19 +728,19 @@ namespace xgo {
 
         data = fromColor(color)
 
-        if (leds & Led.Led1) {
+        if (leds & Led.FrontRight) {
             addr = 0x69
             writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
         }
-        if (leds & Led.Led2) {
+        if (leds & Led.RearRight) {
             addr = 0x6A
             writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
         }
-        if (leds & Led.Led3) {
+        if (leds & Led.RearLeft) {
             addr = 0x6B
             writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
         }
-        if (leds & Led.Led4) {
+        if (leds & Led.FrontLeft) {
             addr = 0x6C
             writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
         }
@@ -772,27 +772,27 @@ onDisplay(() => {
 })
 
 enum Led {
-    //% block="the front right led"
-    //% block.loc.nl="de led rechts-voor"
-    Led1 = 1,
-    //% block="the rear right led"
-    //% block.loc.nl="de led rechts-achter"
-    Led2 = 2,
-    //% block="the rear left led"
-    //% block.loc.nl="de led links-achter"
-    Led3 = 4,
     //% block="the front left led"
     //% block.loc.nl="de led links-voor"
-    Led4 = 8,
-    //% block="all leds"
-    //% block.loc.nl="alle leds"
-    All = 15,
+    FrontLeft = 1,
+    //% block="the rear left led"
+    //% block.loc.nl="de led links-achter"
+    RearLeft = 2,
+    //% block="the front right led"
+    //% block.loc.nl="de led rechts-voor"
+    FrontRight = 4,
+    //% block="the rear right led"
+    //% block.loc.nl="de led rechts-achter"
+    RearRight = 8,
     //% block="the left leds"
     //% block.loc.nl="de linker leds"
     Left = 3,
     //% block="the right leds"
     //% block.loc.nl="de rechter leds"
-    Right = 12
+    Right = 12,
+    //% block="all leds"
+    //% block.loc.nl="alle leds"
+    All = 15,
 }
 
 enum Performance {
