@@ -7,8 +7,21 @@
 //////////////////////
 
 let GROUP = 1
+let WAVE = false
+let WAITWAVE = 1000
 
 type handler = () => void
+
+type msghandler = (value: number) => void
+let messageHandler: msghandler
+function onMessage(code: () => void) {
+    messageHandler = code;
+}
+
+radio.onReceivedNumber(function (value: number) {
+    if (WAVE) basic.pause(WAITWAVE)
+    if (messageHandler) messageHandler(value)
+})
 
 let displayHandler: handler
 function onDisplay(code: () => void) {
@@ -16,10 +29,10 @@ function onDisplay(code: () => void) {
 }
 
 function display() {
-    basic.showNumber(GROUP)
-    basic.pause(500)
-    if (displayHandler) displayHandler()
-    else basic.showIcon(IconNames.Yes)
+	basic.showNumber(GROUP)
+	basic.pause(500)
+	if (displayHandler) displayHandler()
+	else basic.showIcon(IconNames.Yes)
 }
 
 display()
@@ -46,51 +59,51 @@ input.onLogoEvent(TouchButtonEvent.Pressed, function () {
 })
 
 enum Digital {
-    //% block="low"
-    //% block.loc.nl="laag"
-    Low,
-    //% block="high"
-    //% block.loc.nl="hoog"
-    High,
+	//% block="low"
+	//% block.loc.nl="laag"
+	Low,
+	//% block="high"
+	//% block.loc.nl="hoog"
+	High,
 }
 
 enum Move {
-    //% block="forward"
-    //% block.loc.nl="vooruit"
-    Forward,
-    //% block="backward"
-    //% block.loc.nl="achteruit"
-    Backward,
+	//% block="forward"
+	//% block.loc.nl="vooruit"
+	Forward,
+	//% block="backward"
+	//% block.loc.nl="achteruit"
+	Backward,
 }
 
 enum Rotate {
-    //% block="clockwise"
-    //% block.loc.nl="rechtsom"
-    Clockwise,
-    //% block="anticlockwise"
-    //% block.loc.nl="linksom"
-    AntiClockwise,
+	//% block="clockwise"
+	//% block.loc.nl="rechtsom"
+	Clockwise,
+	//% block="anticlockwise"
+	//% block.loc.nl="linksom"
+	AntiClockwise,
 }
 
 enum Pace {
-    //% block="fast"
-    //% block.loc.nl="snelle"
-    Fast,
-    //% block="normal"
-    //% block.loc.nl="normale"
-    Normal,
-    //% block="slow"
-    //% block.loc.nl="langzame"
-    Slow,
+	//% block="fast"
+	//% block.loc.nl="snelle"
+	Fast,
+	//% block="normal"
+	//% block.loc.nl="normale"
+	Normal,
+	//% block="slow"
+	//% block.loc.nl="langzame"
+	Slow,
 }
 
 enum State {
-    //% block="off"
-    //% block.loc.nl="uit"
-    Off,
-    //% block="on"
-    //% block.loc.nl="aan"
-    On,
+	//% block="off"
+	//% block.loc.nl="uit"
+	Off,
+	//% block="on"
+	//% block.loc.nl="aan"
+	On,
 }
 
 //% color="#61CBF4" icon="\uf075"
@@ -103,6 +116,18 @@ namespace General {
     //% block.loc.nl="uitleg: %dummy"
     //% dummy.defl="schrijf hier je uitleg"
     export function comment(dummy: string) {
+    }
+
+    //% block="turn %state the wave"
+    //% block.loc.nl="zet de wave %state"
+    export function waveOn(state: State) {
+        WAVE = (state == State.On);
+    }
+
+    //% block="wave after %sec seconds"
+    //% block.loc.nl="wave na %sec seconden"
+    export function setWave(delay: number) {
+		WAVEWAIT = delay * 1000
     }
 
     //% block="a number from %min upto %max"
@@ -236,95 +261,7 @@ function blueValue(rgb: number): number {
     return b;
 }
 
-///////////////////
-//###############//
-//##           ##//
-//##  wave.ts  ##//
-//##           ##//
-//###############//
-///////////////////
 
-enum Position {
-    //% block="leader"
-    //% block.loc.nl="leider"
-    Leader,
-    //% block="position 1"
-    //% block.loc.nl="positie 1"
-    Position1,
-    //% block="position 2"
-    //% block.loc.nl="positie 2"
-    Position2,
-    //% block="position 3"
-    //% block.loc.nl="positie 3"
-    Position3,
-    //% block="position 4"
-    //% block.loc.nl="positie 4"
-    Position4,
-    //% block="position 5"
-    //% block.loc.nl="positie 5"
-    Position5,
-    //% block="position 6"
-    //% block.loc.nl="positie 6"
-    Position6,
-    //% block="position 7"
-    //% block.loc.nl="positie 7"
-    Position7,
-    //% block="position 8"
-    //% block.loc.nl="positie 8"
-    Position8,
-    //% block="position 9"
-    //% block.loc.nl="positie 9"
-    Position9
-}
-
-//% color="#AEAEAE" icon="\uf140"
-//% block="Wave"
-//% block.loc.nl="Wave"
-namespace Wave {
-
-    let POSITION = Position.Leader
-    let PACE = 0
-
-    export function readWait(): number {
-        return POSITION * PACE
-    }
-
-    //% block="%pace pace"
-    //% block.loc.nl="%pace tempo"
-    export function defPace(pace: Pace): number {
-        return (pace + 1) * 500
-    }
-
-    //% block="position"
-    //% block.loc.nl="positie"
-    export function defPosition(): Position {
-        return POSITION
-    }
-
-    //% block="it is the leader"
-    //% block.loc.nl="het de leider is"
-    export function isLeader(): boolean {
-        return (POSITION == Position.Leader)
-    }
-
-    //% block="turn %state the wave"
-    //% block.loc.nl="zet de wave %state"
-    export function setOff() {
-        PACE = 0
-    }
-
-    //% block="follow after %sec seconds"
-    //% block.loc.nl="volg na %sec seconden"
-    export function setOn(sec: number) {
-        PACE = sec * 1000
-    }
-
-    //% block="follow at %pos"
-    //% block.loc.nl="volg op %pos"
-    export function setPosition(position: Position) {
-        POSITION = position
-    }
-}
 //////////////////////
 //##################//
 //##              ##//
@@ -490,7 +427,7 @@ namespace Gamepad {
         }
     }
 
-    radio.onReceivedNumber(function (value: number) {
+    onMessage(function (value: number) {
         if (value >= 1000)
             handleJoystick(value - 1000)
         else {
@@ -2257,14 +2194,6 @@ namespace XGoLite {
 
     function handleMessage() {
 
-        // A leader sends its movements to the followers
-        if (Wave.isLeader()) {
-            let msec = Wave.readWait()
-            if (MESSAGE != Message.Stop && msec > 0)
-                radio.sendNumber(10000 + msec) // treat wave as Message.Wait
-            radio.sendNumber(MESSAGE)
-        }
-
         // Instead of 'Message.Wait', this message is submitted by
         // the calculated value of '10000 + wait time'.
         let wait = 0
@@ -2514,3 +2443,4 @@ namespace XGoLite {
         if (!PAUSE) handleMessage()
     }
 }
+
