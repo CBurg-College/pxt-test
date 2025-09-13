@@ -315,25 +315,25 @@ enum Power {
     Low,
 }
 
+enum Key {
+    //% block="up"
+    //% block.loc.nl="omhoog"
+    Up,
+    //% block="down"
+    //% block.loc.nl="omlaag"
+    Down,
+    //% block="left"
+    //% block.loc.nl="links"
+    Left,
+    //% block="right"
+    //% block.loc.nl="rechts"
+    Right,
+}
+
 //% color="#C4C80E" icon="\uf11b"
 //% block="Gamepad"
 //% block.loc.nl="Gamepad"
 namespace Gamepad {
-
-    enum Button {
-        //% block="up"
-        //% block.loc.nl="omhoog"
-        Up,
-        //% block="down"
-        //% block.loc.nl="omlaag"
-        Down,
-        //% block="left"
-        //% block.loc.nl="links"
-        Left,
-        //% block="right"
-        //% block.loc.nl="rechts"
-        Right,
-    }
 
     let JSANGLE = Joystick.None
     let JSPOWER = 0
@@ -386,21 +386,21 @@ namespace Gamepad {
             joystickNWHandler()
     }
 
-    function handlePressed(button: Button) {
+    function handlePressed(button: Key) {
         switch (button) {
-            case Button.Up: PRESSED1 = true; if (pressed1Handler) pressed1Handler(); break;
-            case Button.Down: PRESSED2 = true; if (pressed2Handler) pressed2Handler(); break;
-            case Button.Left: PRESSED3 = true; if (pressed3Handler) pressed3Handler(); break;
-            case Button.Right: PRESSED4 = true; if (pressed4Handler) pressed4Handler(); break;
+            case Key.Up: PRESSED1 = true; if (pressed1Handler) pressed1Handler(); break;
+            case Key.Down: PRESSED2 = true; if (pressed2Handler) pressed2Handler(); break;
+            case Key.Left: PRESSED3 = true; if (pressed3Handler) pressed3Handler(); break;
+            case Key.Right: PRESSED4 = true; if (pressed4Handler) pressed4Handler(); break;
         }
     }
 
-    function handleReleased(button: Button) {
+    function handleReleased(button: Key) {
         switch (button) {
-            case Button.Up: PRESSED1 = false; if (released1Handler) released1Handler(); break;
-            case Button.Down: PRESSED2 = false; if (released2Handler) released2Handler(); break;
-            case Button.Left: PRESSED3 = false; if (released3Handler) released3Handler(); break;
-            case Button.Right: PRESSED4 = false; if (released4Handler) released4Handler(); break;
+            case Key.Up: PRESSED1 = false; if (released1Handler) released1Handler(); break;
+            case Key.Down: PRESSED2 = false; if (released2Handler) released2Handler(); break;
+            case Key.Left: PRESSED3 = false; if (released3Handler) released3Handler(); break;
+            case Key.Right: PRESSED4 = false; if (released4Handler) released4Handler(); break;
         }
     }
 
@@ -418,24 +418,24 @@ namespace Gamepad {
     //% color="#FFC000"
     //% block="when button %button is released"
     //% block.loc.nl="wanneer knop %button wordt losgelaten"
-    export function onReleased(button: Button, code: () => void): void {
+    export function onReleased(button: Key, code: () => void): void {
         switch (button) {
-            case Button.Up: released1Handler = code; break;
-            case Button.Down: released2Handler = code; break;
-            case Button.Left: released3Handler = code; break;
-            case Button.Right: released4Handler = code; break;
+            case Key.Up: released1Handler = code; break;
+            case Key.Down: released2Handler = code; break;
+            case Key.Left: released3Handler = code; break;
+            case Key.Right: released4Handler = code; break;
         }
     }
 
     //% color="#FFC000"
     //% block="when button %button is pressed"
     //% block.loc.nl="wanneer knop %button wordt ingedrukt"
-    export function onPressed(button: Button, code: () => void): void {
+    export function onPressed(button: Key, code: () => void): void {
         switch (button) {
-            case Button.Up: pressed1Handler = code; break;
-            case Button.Down: pressed2Handler = code; break;
-            case Button.Left: pressed3Handler = code; break;
-            case Button.Right: pressed4Handler = code; break;
+            case Key.Up: pressed1Handler = code; break;
+            case Key.Down: pressed2Handler = code; break;
+            case Key.Left: pressed3Handler = code; break;
+            case Key.Right: pressed4Handler = code; break;
         }
     }
 
@@ -458,24 +458,24 @@ namespace Gamepad {
 
     //% block="%button is up"
     //% block.loc.nl="%button is losgelaten"
-    export function isReleased(button: Button): boolean {
+    export function isReleased(button: Key): boolean {
         switch (button) {
-            case Button.Up: return !PRESSED1;
-            case Button.Down: return !PRESSED2;
-            case Button.Left: return !PRESSED3;
-            case Button.Right: return !PRESSED4;
+            case Key.Up: return !PRESSED1;
+            case Key.Down: return !PRESSED2;
+            case Key.Left: return !PRESSED3;
+            case Key.Right: return !PRESSED4;
         }
         return false;
     }
 
     //% block="%button is down"
     //% block.loc.nl="%button is ingedrukt"
-    export function isPressed(button: Button): boolean {
+    export function isPressed(button: Key): boolean {
         switch (button) {
-            case Button.Up: return PRESSED1;
-            case Button.Down: return PRESSED2;
-            case Button.Left: return PRESSED3;
-            case Button.Right: return PRESSED4;
+            case Key.Up: return PRESSED1;
+            case Key.Down: return PRESSED2;
+            case Key.Left: return PRESSED3;
+            case Key.Right: return PRESSED4;
         }
         return false;
     }
