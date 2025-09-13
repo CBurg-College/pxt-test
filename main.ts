@@ -772,17 +772,17 @@ onDisplay(() => {
 })
 
 enum Led {
-    //% block="the front left led"
-    //% block.loc.nl="de led links-voor"
-    Led1 = 1,
-    //% block="the rear left led"
-    //% block.loc.nl="de led links-achter"
-    Led2 = 2,
     //% block="the front right led"
     //% block.loc.nl="de led rechts-voor"
-    Led3 = 4,
+    Led1 = 1,
     //% block="the rear right led"
     //% block.loc.nl="de led rechts-achter"
+    Led2 = 2,
+    //% block="the rear left led"
+    //% block.loc.nl="de led links-achter"
+    Led3 = 4,
+    //% block="the front left led"
+    //% block.loc.nl="de led links-voor"
     Led4 = 8,
     //% block="all leds"
     //% block.loc.nl="alle leds"
