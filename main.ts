@@ -325,7 +325,6 @@ namespace Wave {
         POSITION = position
     }
 }
-
 //////////////////////
 //##################//
 //##              ##//
@@ -502,6 +501,47 @@ namespace Gamepad {
         }
     })
 
+    //% color="#FFC000"
+    //% block="when button %button is released"
+    //% block.loc.nl="wanneer knop %button wordt losgelaten"
+    export function onReleased(button: Button, code: () => void): void {
+        switch (button) {
+            case Button.Up: released1Handler = code; break;
+            case Button.Down: released2Handler = code; break;
+            case Button.Left: released3Handler = code; break;
+            case Button.Right: released4Handler = code; break;
+        }
+    }
+
+    //% color="#FFC000"
+    //% block="when button %button is pressed"
+    //% block.loc.nl="wanneer knop %button wordt ingedrukt"
+    export function onPressed(button: Button, code: () => void): void {
+        switch (button) {
+            case Button.Up: pressed1Handler = code; break;
+            case Button.Down: pressed2Handler = code; break;
+            case Button.Left: pressed3Handler = code; break;
+            case Button.Right: pressed4Handler = code; break;
+        }
+    }
+
+    //% color="#FFC000"
+    //% block="when the joystick Joystick is %dir"
+    //% block.loc.nl="wanneer de joystick richting %dir is"
+    export function onJoystick(dir: Joystick, code: () => void): void {
+        switch (dir) {
+            case Joystick.None: joystickXHandler = code; break;
+            case Joystick.Up: joystickNHandler = code; break;
+            case Joystick.UpRight: joystickNEHandler = code; break;
+            case Joystick.Right: joystickEHandler = code; break;
+            case Joystick.DownRight: joystickSEHandler = code; break;
+            case Joystick.Down: joystickSHandler = code; break;
+            case Joystick.DownLeft: joystickSWHandler = code; break;
+            case Joystick.Left: joystickWHandler = code; break;
+            case Joystick.UpLeft: joystickNWHandler = code; break;
+        }
+    }
+
     //% block="%button is up"
     //% block.loc.nl="%button is losgelaten"
     export function isReleased(button: Button): boolean {
@@ -547,48 +587,6 @@ namespace Gamepad {
     export function readJoystick(): Joystick {
         return JSDIR
     }
-
-    //% color="#FFC000"
-    //% block="when %button is released"
-    //% block.loc.nl="wanneer %button wordt losgelaten"
-    export function onReleased(button: Button, code: () => void): void {
-        switch (button) {
-            case Button.Up: released1Handler = code; break;
-            case Button.Down: released2Handler = code; break;
-            case Button.Left: released3Handler = code; break;
-            case Button.Right: released4Handler = code; break;
-        }
-    }
-
-    //% color="#FFC000"
-    //% block="when %button is pressed"
-    //% block.loc.nl="wanneer %button wordt ingedrukt"
-    export function onPressed(button: Button, code: () => void): void {
-        switch (button) {
-            case Button.Up: pressed1Handler = code; break;
-            case Button.Down: pressed2Handler = code; break;
-            case Button.Left: pressed3Handler = code; break;
-            case Button.Right: pressed4Handler = code; break;
-        }
-    }
-
-    //% color="#FFC000"
-    //% block="when the joystick Joystick is %dir"
-    //% block.loc.nl="wanneer de joystick richting %dir is"
-    export function onJoystick(dir: Joystick, code: () => void): void {
-        switch (dir) {
-            case Joystick.None: joystickXHandler = code; break;
-            case Joystick.Up: joystickNHandler = code; break;
-            case Joystick.UpRight: joystickNEHandler = code; break;
-            case Joystick.Right: joystickEHandler = code; break;
-            case Joystick.DownRight: joystickSEHandler = code; break;
-            case Joystick.Down: joystickSHandler = code; break;
-            case Joystick.DownLeft: joystickSWHandler = code; break;
-            case Joystick.Left: joystickWHandler = code; break;
-            case Joystick.UpLeft: joystickNWHandler = code; break;
-        }
-    }
-
 }
 
 
