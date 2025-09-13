@@ -590,168 +590,1502 @@ namespace Gamepad {
 }
 
 
-////////////////////////
-//####################//
-//##                ##//
-//##  xgo-rider.ts  ##//
-//##                ##//
-//####################//
-////////////////////////
+//////////////////////
+//##################//
+//##              ##//
+//##  xgo-lite.ts ##//
+//##              ##//
+//##################//
+//////////////////////
 
 /*
-The xgo namespace is a refactoring of the ElecFreaks 'pxt-rider' library:
-https://github.com/elecfreaks/pxt-xgo-rider/blob/main/main.ts
+The xgo namespace is a refactoring of the ElecFreaks 'pxt-xgo' library:
+https://github.com/elecfreaks/pxt-xgo/blob/master/main.ts
 (MIT-license)
 */
 
 //##########  BEGIN XGO  ##########//
 
 namespace xgo {
-    let headData = 0x5500
-    let tailData = 0x00AA
-    let headDataH = (headData >> 8) & 0xff;
-    let headDataL = (headData >> 0) & 0xff;
-    let tailDataH = (tailData >> 8) & 0xff;
-    let tailDataL = (tailData >> 0) & 0xff;
 
-    function writeCommand(len: number, addr: number, data: number) {
-        let commands_buffer = pins.createBuffer(len)
-        commands_buffer[0] = headDataH
-        commands_buffer[1] = headDataL
-        commands_buffer[2] = len
-        commands_buffer[3] = 0x00
-        commands_buffer[4] = addr
-        commands_buffer[5] = data
-        commands_buffer[6] = ~(len + 0x00 + addr + data)
-        commands_buffer[7] = tailDataH
-        commands_buffer[8] = tailDataL
-        serial.writeBuffer(commands_buffer)
-        basic.pause(100)
+    export enum rotate_enum {
+        Left,
+        Right
     }
 
-    function writeThreeCommand(len: number, addr: number, data0: number, data1: number, data2: number) {
-        let commands_buffer = pins.createBuffer(len)
-        commands_buffer[0] = headDataH
-        commands_buffer[1] = headDataL
-        commands_buffer[2] = len
-        commands_buffer[3] = 0x00
-        commands_buffer[4] = addr
-        commands_buffer[5] = data0
-        commands_buffer[6] = data1
-        commands_buffer[7] = data2
-        commands_buffer[8] = ~(len + 0x00 + addr + data0 + data1 + data2)
-        commands_buffer[9] = tailDataH
-        commands_buffer[10] = tailDataL
-        serial.writeBuffer(commands_buffer)
-        basic.pause(100)
+    export enum movement_enum {
+        Forward,
+        Backward,
+        Left,
+        Right
     }
 
-    function readCommand(len: number, addr: number, readlen: number) {
-        let commands_buffer = pins.createBuffer(len)
-        commands_buffer[0] = headDataH
-        commands_buffer[1] = headDataL
-        commands_buffer[2] = len
+    export enum speed_frequency_enum {
+        servo_speed,
+        stepped_frequency
+    }
+
+    export enum speed_enum {
+        fast = 0xf0,
+        normal = 0x80,
+        slow = 0x10
+    }
+
+    export enum translation_movement_enum {
+        Forward,
+        Backward,
+        left_shift,
+        right_shift
+    }
+
+    export enum rotate_movement_enum {
+        turn_left,
+        turn_right
+    }
+
+    export enum orientation_enum {
+        X,
+        Y,
+        Z
+    }
+
+    export enum body_movement_xyz_enum {
+        X,
+        Y,
+        Z
+    }
+
+    export enum translation_xyz_enum {
+        X,
+        Y,
+        Z
+    }
+
+    export enum switch_enum {
+        Turn_on,
+        Turn_off
+    }
+
+    export enum servo_switch_enum {
+        Load,
+        Unload
+    }
+
+    export enum body_parts_enum {
+        left_front,
+        left_hind,
+        right_front,
+        right_hind
+    }
+
+    export enum joint_enum {
+        upper,
+        middle,
+        below
+    }
+
+    export enum turn_joint_enum {
+        upper,
+        middle,
+        below
+    }
+    export enum clmap_stable_enum {
+        Stable,
+        Unstable
+    }
+
+    export enum action_enum {
+        Default_posture,
+        Go_prone,
+        Stand,
+        Crawl_forward,
+        Whirl,
+        Sur_place,
+        Squat,
+        Twirl_Roll,
+        Twirl_Pitch,
+        Twirl_Yaw,
+        Triaxial_rotation,
+        Pee,
+        Sit_down,
+        Wave,
+        Stretch_oneself,
+        Play_pendulum,
+        Request_feeding,
+        Looking_for_food,
+        Handshake
+    }
+
+    export enum pose_enum {
+        //% block="pose1"
+        pose1,
+        //% block="pose2"
+        pose2,
+        //% block="pose3"
+        pose3,
+        //% block="pose4"
+        pose4,
+        //% block="pose5"
+        pose5
+    }
+
+    let pose1zx = pins.createBuffer(23)
+    let pose2zx = pins.createBuffer(23)
+    let pose3zx = pins.createBuffer(23)
+    let pose4zx = pins.createBuffer(23)
+    let pose5zx = pins.createBuffer(23)
+
+    export function init_xgo_serial(tx: SerialPin, rx: SerialPin) {
+        serial.redirect(tx, rx, BaudRate.BaudRate115200)
+        xgo.init_action()
+    }
+
+    export function execution_action(action: action_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x3E
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (action) {
+            case action_enum.Default_posture:
+                commands_buffer[5] = 0xFF
+                commands_buffer[6] = 0xB9
+                serial.writeBuffer(commands_buffer)
+                basic.pause(1000)
+                break
+            case action_enum.Go_prone:
+                commands_buffer[5] = 0x01
+                commands_buffer[6] = 0xB7
+                serial.writeBuffer(commands_buffer)
+                basic.pause(3000)
+                break
+            case action_enum.Stand:
+                commands_buffer[5] = 0x02
+                commands_buffer[6] = 0xB6
+                serial.writeBuffer(commands_buffer)
+                basic.pause(3000)
+                break
+            case action_enum.Crawl_forward:
+                commands_buffer[5] = 0x03
+                commands_buffer[6] = 0xB5
+                serial.writeBuffer(commands_buffer)
+                basic.pause(5000)
+                break
+            case action_enum.Whirl:
+                commands_buffer[5] = 0x04
+                commands_buffer[6] = 0xB4
+                serial.writeBuffer(commands_buffer)
+                basic.pause(5000)
+                break
+            case action_enum.Sur_place:
+                commands_buffer[5] = 0x05
+                commands_buffer[6] = 0xB3
+                serial.writeBuffer(commands_buffer)
+                break
+            case action_enum.Squat:
+                commands_buffer[5] = 0x06
+                commands_buffer[6] = 0xB2
+                serial.writeBuffer(commands_buffer)
+                basic.pause(4000)
+                break
+            case action_enum.Twirl_Roll:
+                commands_buffer[5] = 0x07
+                commands_buffer[6] = 0xB1
+                serial.writeBuffer(commands_buffer)
+                basic.pause(4000)
+                break
+            case action_enum.Twirl_Pitch:
+                commands_buffer[5] = 0x08
+                commands_buffer[6] = 0xB0
+                serial.writeBuffer(commands_buffer)
+                basic.pause(5000)
+                break
+            case action_enum.Twirl_Yaw:
+                commands_buffer[5] = 0x09
+                commands_buffer[6] = 0xAF
+                serial.writeBuffer(commands_buffer)
+                basic.pause(5000)
+                break
+            case action_enum.Triaxial_rotation:
+                commands_buffer[5] = 0x0A
+                commands_buffer[6] = 0xAE
+                serial.writeBuffer(commands_buffer)
+                basic.pause(7000)
+                break
+            case action_enum.Pee:
+                commands_buffer[5] = 0x0B
+                commands_buffer[6] = 0xAD
+                serial.writeBuffer(commands_buffer)
+                basic.pause(7000)
+                break
+            case action_enum.Sit_down:
+                commands_buffer[5] = 0x0C
+                commands_buffer[6] = 0xAC
+                serial.writeBuffer(commands_buffer)
+                basic.pause(5000)
+                break
+            case action_enum.Wave:
+                commands_buffer[5] = 0x0D
+                commands_buffer[6] = 0xAB
+                serial.writeBuffer(commands_buffer)
+                basic.pause(7000)
+                break
+            case action_enum.Stretch_oneself:
+                commands_buffer[5] = 0x0E
+                commands_buffer[6] = 0xAA
+                serial.writeBuffer(commands_buffer)
+                basic.pause(5000)
+                basic.pause(5000)
+                break
+            case action_enum.Play_pendulum:
+                commands_buffer[5] = 0x10
+                commands_buffer[6] = 0xA8
+                serial.writeBuffer(commands_buffer)
+                basic.pause(7000)
+                break
+            case action_enum.Request_feeding:
+                commands_buffer[5] = 0x11
+                commands_buffer[6] = 0xA7
+                serial.writeBuffer(commands_buffer)
+                basic.pause(4000)
+                break
+            case action_enum.Looking_for_food:
+                commands_buffer[5] = 0x12
+                commands_buffer[6] = 0xA6
+                serial.writeBuffer(commands_buffer)
+                basic.pause(5000)
+                break
+            case action_enum.Handshake:
+                commands_buffer[5] = 0x13
+                commands_buffer[6] = 0xA5
+                serial.writeBuffer(commands_buffer)
+                basic.pause(5000)
+                basic.pause(5000)
+                break
+        }
+    }
+
+    export function init_action() {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x3E
+        commands_buffer[5] = 0xFF
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x3E + 0xFF)
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        serial.writeBuffer(commands_buffer)
+        basic.pause(1000)
+    }
+
+    export function gyroscope_switch(on_off: switch_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x61
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (on_off) {
+            case switch_enum.Turn_on:
+                commands_buffer[5] = 0x01
+                break
+            case switch_enum.Turn_off:
+                commands_buffer[5] = 0x00
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x61 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function get_electric_quantity(): number {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
         commands_buffer[3] = 0x02
-        commands_buffer[4] = addr
-        commands_buffer[5] = readlen
-        commands_buffer[6] = ~(len + 0x02 + addr + readlen)
-        commands_buffer[7] = tailDataH
-        commands_buffer[8] = tailDataL
+        commands_buffer[4] = 0x01
+        commands_buffer[5] = 0x01
+        commands_buffer[6] = ~(0x09 + 0x02 + 0x01 + 0x01)
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
         serial.writeBuffer(commands_buffer)
         let read_data_buffer = pins.createBuffer(9)
         read_data_buffer = serial.readBuffer(9)
         return read_data_buffer[5]
     }
 
-    export function initXGOSerial(tx: SerialPin = SerialPin.P13, rx: SerialPin = SerialPin.P14) {
-
-        serial.redirect(tx, rx, BaudRate.BaudRate115200)
-        initActionMode()
+    export function get_version(): string {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x02
+        commands_buffer[4] = 0x07
+        commands_buffer[5] = 0x00
+        commands_buffer[6] = 0xED
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        serial.writeBuffer(commands_buffer)
+        let read_data_buffer = pins.createBuffer(9)
+        read_data_buffer = serial.readBuffer(18)
+        let version = String.fromCharCode(read_data_buffer[5]) + String.fromCharCode(read_data_buffer[6]) + String.fromCharCode(read_data_buffer[7]) + String.fromCharCode(read_data_buffer[8]) + String.fromCharCode(read_data_buffer[9])
+        return version
     }
 
-    export function initActionMode() {
-        let status = readCommand(0x09, 0x02, 0x01)
-        if (status == 0x00) return;
-        writeCommand(0x09, 0x3E, 0xFF)
+    export function servo_setting(part: body_parts_enum, on_off: servo_switch_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x20
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (part) {
+
+            case body_parts_enum.left_front:
+                if (on_off == servo_switch_enum.Load)
+                    commands_buffer[5] = 0x21
+                else
+                    commands_buffer[5] = 0x11
+                break
+
+            case body_parts_enum.left_hind:
+                if (on_off == servo_switch_enum.Load)
+                    commands_buffer[5] = 0x24
+                else
+                    commands_buffer[5] = 0x14
+                break
+
+            case body_parts_enum.right_front:
+                if (on_off == servo_switch_enum.Load)
+                    commands_buffer[5] = 0x22
+                else
+                    commands_buffer[5] = 0x12
+                break
+
+            case body_parts_enum.right_hind:
+                if (on_off == servo_switch_enum.Load)
+                    commands_buffer[5] = 0x23
+                else
+                    commands_buffer[5] = 0x13
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x20 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(50)
+    }
+
+    export function set_speed_frequency(speed_frequency: speed_frequency_enum, speed: speed_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        if (speed_frequency == speed_frequency_enum.servo_speed) {
+            commands_buffer[4] = 0x5C
+            commands_buffer[5] = speed
+        }
+        else {
+            commands_buffer[4] = 0x3D
+            if (speed == speed_enum.fast)
+                commands_buffer[5] = 0x02
+            else if (speed == speed_enum.normal)
+                commands_buffer[5] = 0x00
+            else if (speed == speed_enum.slow)
+                commands_buffer[5] = 0x01
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function body_height(height: number) {
+        let height_buffer = pins.createBuffer(9)
+        if (height > 100)
+            height = 100
+        if (height < 0)
+            height = 0
+        height_buffer[0] = 0x55
+        height_buffer[1] = 0x00
+        height_buffer[2] = 0x09
+        height_buffer[3] = 0x00
+        height_buffer[4] = 0x35
+        height_buffer[5] = Math.map(height, 0, 100, 0, 255)
+        height_buffer[6] = ~(0x09 + 0x00 + 0x35 + height_buffer[5])
+        height_buffer[7] = 0x00
+        height_buffer[8] = 0xAA
+        serial.writeBuffer(height_buffer)
+        basic.pause(2000)
+    }
+
+    export function SetPosestate(posestate: pose_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        let reset_buffer = pins.createBuffer(9)
+        let part = 0
+        let i = 0
+        let UsingBuffer = pins.createBuffer(23)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x3E
+        commands_buffer[5] = 0xFF
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        serial.writeBuffer(commands_buffer)
         basic.pause(1000)
-    }
-
-    export function batteryStatus(): number {
-        return readCommand(0x09, 0x01, 0x01)
-    }
-
-    export function setHeight(height: number) {
-        let data = Math.map(height, -20, 20, 0, 255)
-        writeCommand(0x09, 0x35, data)
-        basic.pause(100)
-    }
-
-    export function setAngle(angle: number) {
-        let data = Math.map(angle, -100, 100, 0, 255)
-        writeCommand(0x09, 0x36, data)
-        basic.pause(100)
-    }
-
-    export function moveRider(move: Move, speed: number) {
-        if (move == Move.Backward)
-            speed = -speed
-        let data = Math.map(speed, -100, 100, 0, 255)
-        writeCommand(0x09, 0x30, data)
-        basic.pause(100)
-    }
-
-    export function rotateRider(rotation: Rotate, speed: number) {
-        if (rotation == Rotate.Clockwise)
-            speed = -speed
-        let data = Math.map(speed, -100, 100, 0, 255)
-        writeCommand(0x09, 0x32, data)
-    }
-
-    export function squattingFunc(time: number) {
-        time = 4 - time
-        let data = Math.map(time, 0, 2, 1, 255)
-        writeCommand(0x09, 0x82, data)
-    }
-
-    export function shufflingFunc(time: number) {
-        time = 4 - time
-        let data = Math.map(time, 0, 2, 1, 255)
-        writeCommand(0x09, 0x39, data)
-    }
-
-    export function ledColor(leds: Led, color: Color) {
-
-        let len, addr, data, wait
-        len = 0x0B
-
-        data = fromColor(color)
-
-        if (leds & Led.FrontLeft) {
-            addr = 0x69
-            writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
+        switch (posestate) {
+            case pose_enum.pose1:
+                for (i = 0; i < 23;) {
+                    UsingBuffer[i] = pose1zx[i]
+                    i = i + 1
+                }
+                break
+            case pose_enum.pose2:
+                for (i = 0; i < 23;) {
+                    UsingBuffer[i] = pose2zx[i]
+                    i = i + 1
+                }
+                break
+            case pose_enum.pose3:
+                for (i = 0; i < 23;) {
+                    UsingBuffer[i] = pose3zx[i]
+                    i = i + 1
+                }
+                break
+            case pose_enum.pose4:
+                for (i = 0; i < 23;) {
+                    UsingBuffer[i] = pose4zx[i]
+                    i = i + 1
+                }
+                break
+            case pose_enum.pose5:
+                for (i = 0; i < 23;) {
+                    UsingBuffer[i] = pose5zx[i]
+                    i = i + 1
+                }
+                break
+            default:
+                break
         }
-        if (leds & Led.RearLeft) {
-            addr = 0x6A
-            writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
+
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x71
+        commands_buffer[5] = UsingBuffer[17]
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        serial.writeBuffer(commands_buffer)
+        basic.pause(50)
+
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x5D
+        commands_buffer[5] = UsingBuffer[18]
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        serial.writeBuffer(commands_buffer)
+        basic.pause(50)
+
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x5E
+        commands_buffer[5] = UsingBuffer[19]
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        serial.writeBuffer(commands_buffer)
+        basic.pause(50)
+
+        for (part = 0; part < 4; part++) {
+            switch (part) {
+                case body_parts_enum.left_front:
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x52
+
+                    commands_buffer[5] = UsingBuffer[7]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x51
+
+                    commands_buffer[5] = UsingBuffer[6]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x50
+
+                    commands_buffer[5] = UsingBuffer[5]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    break
+                case body_parts_enum.left_hind:
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x5B
+
+                    commands_buffer[5] = UsingBuffer[16]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x5A
+
+                    commands_buffer[5] = UsingBuffer[15]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x59
+
+                    commands_buffer[5] = UsingBuffer[14]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    break
+                case body_parts_enum.right_front:
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x55
+
+                    commands_buffer[5] = UsingBuffer[10]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x54
+
+                    commands_buffer[5] = UsingBuffer[9]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x53
+
+                    commands_buffer[5] = UsingBuffer[8]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    break
+                case body_parts_enum.right_hind:
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x58
+
+                    commands_buffer[5] = UsingBuffer[13]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x57
+
+                    commands_buffer[5] = UsingBuffer[12]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    commands_buffer[0] = 0x55
+                    commands_buffer[1] = 0x00
+                    commands_buffer[2] = 0x09
+                    commands_buffer[3] = 0x00
+                    commands_buffer[7] = 0x00
+                    commands_buffer[8] = 0xAA
+                    commands_buffer[4] = 0x56
+
+                    commands_buffer[5] = UsingBuffer[11]
+                    commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                    serial.writeBuffer(commands_buffer)
+                    basic.pause(50)
+                    break
+            }
         }
-        if (leds & Led.RearRight) {
-            addr = 0x6B
-            writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
+
+    }
+
+    export function GetPosestate(posestate: pose_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        let read_data_buffer = pins.createBuffer(23)
+        let i = 0
+        basic.pause(50)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x02
+        commands_buffer[4] = 0x50
+        commands_buffer[5] = 0x0C
+        commands_buffer[6] = ~(0x09 + 0x02 + 0x50 + commands_buffer[5])
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        serial.writeBuffer(commands_buffer)
+
+        serial.setRxBufferSize(1000)
+        read_data_buffer = serial.readBuffer(23)
+        switch (posestate) {
+            case pose_enum.pose1:
+                for (i = 0; i < 23;) {
+                    pose1zx[i] = read_data_buffer[i]
+                    i = i + 1
+                }
+                break
+            case pose_enum.pose2:
+                for (i = 0; i < 23;) {
+                    pose2zx[i] = read_data_buffer[i]
+                    i = i + 1
+                }
+                break
+            case pose_enum.pose3:
+                for (i = 0; i < 23;) {
+                    pose3zx[i] = read_data_buffer[i]
+                    i = i + 1
+                }
+                break
+            case pose_enum.pose4:
+                for (i = 0; i < 23;) {
+                    pose4zx[i] = read_data_buffer[i]
+                    i = i + 1
+                }
+                break
+            case pose_enum.pose5:
+                for (i = 0; i < 23;) {
+                    pose5zx[i] = read_data_buffer[i]
+                    i = i + 1
+                }
+                break
+            default:
+                break
         }
-        if (leds & Led.FrontRight) {
-            addr = 0x6C
-            writeThreeCommand(len, addr, ((data >> 16) & 0xff), ((data >> 8) & 0xff), ((data >> 0) & 0xff))
+
+    }
+
+    export function get_servo_angle(part: body_parts_enum, joint: joint_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        basic.pause(50)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x02
+        commands_buffer[4] = 0x50
+        commands_buffer[5] = 0x0F
+        commands_buffer[6] = ~(0x09 + 0x02 + 0x50 + 0x0F)
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        serial.writeBuffer(commands_buffer)
+        let read_data_buffer = pins.createBuffer(23)
+        serial.setRxBufferSize(1000)
+        read_data_buffer = serial.readBuffer(23)
+        switch (part) {
+            case body_parts_enum.left_front:
+                if (joint == joint_enum.below)
+                    return read_data_buffer[5]
+                else if (joint == joint_enum.middle)
+                    return read_data_buffer[6]
+                else
+                    return read_data_buffer[7]
+                break
+            case body_parts_enum.left_hind:
+                if (joint == joint_enum.below)
+                    return read_data_buffer[8]
+                else if (joint == joint_enum.middle)
+                    return read_data_buffer[9]
+                else
+                    return read_data_buffer[10]
+                break
+            case body_parts_enum.right_front:
+                if (joint == joint_enum.below)
+                    return read_data_buffer[11]
+                else if (joint == joint_enum.middle)
+                    return read_data_buffer[12]
+                else
+                    return read_data_buffer[13]
+                break
+            case body_parts_enum.right_hind:
+                if (joint == joint_enum.below)
+                    return read_data_buffer[14]
+                else if (joint == joint_enum.middle)
+                    return read_data_buffer[15]
+                else
+                    return read_data_buffer[16]
+                break
         }
+    }
+
+    export function servo_switch(on_off: servo_switch_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x20
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (on_off) {
+            case servo_switch_enum.Load:
+                commands_buffer[5] = 0x00
+                break
+            case servo_switch_enum.Unload:
+                commands_buffer[5] = 0x01
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x20 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(50)
+    }
+
+    export function rotate_angle_reel_reciprocate(movement_xyz: body_movement_xyz_enum, period: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        if (period > 8)
+            period = 8
+        if (period < 3)
+            period = 3
+        switch (movement_xyz) {
+            case body_movement_xyz_enum.X:
+                commands_buffer[4] = 0x39
+                break
+            case body_movement_xyz_enum.Y:
+                commands_buffer[4] = 0x3A
+                break
+            case body_movement_xyz_enum.Z:
+                commands_buffer[4] = 0x3B
+                break
+        }
+        commands_buffer[5] = Math.map(period, 2, 8, 0, 255)
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function rotate_angle_reel_reciprocate_stop(movement_xyz: body_movement_xyz_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (movement_xyz) {
+            case body_movement_xyz_enum.X:
+                commands_buffer[4] = 0x39
+                break
+            case body_movement_xyz_enum.Y:
+                commands_buffer[4] = 0x3A
+                break
+            case body_movement_xyz_enum.Z:
+                commands_buffer[4] = 0x3B
+                break
+        }
+        commands_buffer[5] = 0
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + 0x00)
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function rotate_angle_reel(movement_xyz: body_movement_xyz_enum, angle: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        if (angle > 20)
+            angle = 20
+        if (angle < -20)
+            angle = -20
+        switch (movement_xyz) {
+            case body_movement_xyz_enum.X:
+                commands_buffer[4] = 0x36
+                commands_buffer[5] = Math.map(angle, -20, 20, 0, 255)
+                break
+            case body_movement_xyz_enum.Y:
+                commands_buffer[4] = 0x37
+                commands_buffer[5] = Math.map(angle, -20, 20, 0, 255)
+                break
+            case body_movement_xyz_enum.Z:
+                commands_buffer[4] = 0x38
+                commands_buffer[5] = Math.map(angle, -20, 20, 0, 255)
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(2000)
+    }
+
+    export function translational_motion_reciprocate_stop(movement_xyz: body_movement_xyz_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (movement_xyz) {
+            case body_movement_xyz_enum.X:
+                commands_buffer[4] = 0x80
+                break
+            case body_movement_xyz_enum.Y:
+                commands_buffer[4] = 0x81
+                break
+            case body_movement_xyz_enum.Z:
+                commands_buffer[4] = 0x82
+                break
+        }
+        commands_buffer[5] = 0
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + 0x00)
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function translational_motion_reciprocate(movement_xyz: body_movement_xyz_enum, period: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        if (period > 8)
+            period = 8
+        if (period < 2)
+            period = 2
+        switch (movement_xyz) {
+            case body_movement_xyz_enum.X:
+                commands_buffer[4] = 0x80
+                break
+            case body_movement_xyz_enum.Y:
+                commands_buffer[4] = 0x81
+                break
+            case body_movement_xyz_enum.Z:
+                commands_buffer[4] = 0x82
+                break
+        }
+        commands_buffer[5] = Math.map(period, 1, 8, 0, 255)
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function translational_motion(movement_xyz: translation_xyz_enum, distance: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (movement_xyz) {
+            case translation_xyz_enum.X:
+                commands_buffer[4] = 0x33
+                if (distance > 35)
+                    distance = 35
+                if (distance < -35)
+                    distance = -35
+                commands_buffer[5] = Math.map(distance, -35, 35, 0, 255)
+                break
+            case translation_xyz_enum.Y:
+                commands_buffer[4] = 0x34
+                if (distance > 18)
+                    distance = 18
+                if (distance < -18)
+                    distance = -18
+                commands_buffer[5] = Math.map(distance, -18, 18, 0, 255)
+                break
+            case translation_xyz_enum.Z:
+                commands_buffer[4] = 0x35
+                if (distance > 115)
+                    distance = 115
+                if (distance < 75)
+                    distance = 75
+                commands_buffer[5] = Math.map(distance, 75, 115, 0, 255)
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(2000)
+    }
+
+    export function leg_lift_continue(mm: number, time: number) {
+        let commands_buffer = pins.createBuffer(9)
+        if (mm > 35)
+            mm = 35
+        if (mm < 11)
+            mm = 11
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x3C
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        commands_buffer[5] = Math.map(mm, 8, 35, 0, 255)
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x3C + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(time * 1000)
+        commands_buffer[5] = 0
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x3C + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function leg_lift(mm: number) {
+        let commands_buffer = pins.createBuffer(9)
+        if (mm > 35)
+            mm = 35
+        if (mm < 11)
+            mm = 11
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x3C
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        commands_buffer[5] = Math.map(mm, 8, 35, 0, 255)
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x3C + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function rotate_angle_continue(movement: rotate_movement_enum, speed: number, time: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x32
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        if (speed > 150)
+            speed = 150
+        if (speed < 0)
+            speed = 0
+        switch (movement) {
+            case rotate_movement_enum.turn_left:
+                commands_buffer[5] = Math.map(speed, 0, 150, 128, 255)
+                break
+            case rotate_movement_enum.turn_right:
+                commands_buffer[5] = Math.map(speed, 0, 150, 128, 0)
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x32 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(time * 1000)
+        commands_buffer[5] = 0x80
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x32 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function rotate_angle(movement: rotate_movement_enum, speed: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x32
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        if (speed > 150)
+            speed = 150
+        if (speed < 0)
+            speed = 0
+        switch (movement) {
+            case rotate_movement_enum.turn_left:
+                commands_buffer[5] = Math.map(speed, 0, 150, 128, 255)
+                break
+            case rotate_movement_enum.turn_right:
+                commands_buffer[5] = Math.map(speed, 0, 150, 128, 0)
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x32 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function translational_step_continue(movement: translation_movement_enum, step: number, time: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        if (step > 25)
+            step = 25
+        if (step < 5)
+            step = 5
+        switch (movement) {
+            case translation_movement_enum.Forward:
+                commands_buffer[4] = 0x30
+                commands_buffer[5] = Math.map(step, 0, 25, 128, 255)
+                break
+            case translation_movement_enum.Backward:
+                commands_buffer[4] = 0x30
+                commands_buffer[5] = Math.map(step, 0, 25, 128, 0)
+                break
+            case translation_movement_enum.left_shift:
+                commands_buffer[4] = 0x31
+                commands_buffer[5] = Math.map(step, 0, 25, 128, 0)
+                break
+            case translation_movement_enum.right_shift:
+                commands_buffer[4] = 0x31
+                commands_buffer[5] = Math.map(step, 0, 25, 128, 255)
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(time * 1000)
+        commands_buffer[5] = 0x80
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function translational_step(movement: translation_movement_enum, step: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        if (step > 25)
+            step = 25
+        if (step < 5)
+            step = 5
+        switch (movement) {
+            case translation_movement_enum.Forward:
+                commands_buffer[4] = 0x30
+                commands_buffer[5] = Math.map(step, 0, 25, 128, 255)
+                break
+            case translation_movement_enum.Backward:
+                commands_buffer[4] = 0x30
+                commands_buffer[5] = Math.map(step, 0, 25, 128, 0)
+                break
+            case translation_movement_enum.left_shift:
+                commands_buffer[4] = 0x31
+                commands_buffer[5] = Math.map(step, 0, 25, 128, 0)
+                break
+            case translation_movement_enum.right_shift:
+                commands_buffer[4] = 0x31
+                commands_buffer[5] = Math.map(step, 0, 25, 128, 255)
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function single_leg(part: body_parts_enum, location_x: number, location_y: number, location_z: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        let X = Math.map(location_x, -35, 35, 0, 255)
+        let Y = Math.map(location_y, -18, 18, 0, 255)
+        let Z = Math.map(location_z, 75, 115, 0, 255)
+        switch (part) {
+            case body_parts_enum.left_front:
+                commands_buffer[4] = 0x40
+                commands_buffer[5] = X
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(50)
+                commands_buffer[4] = 0x41
+                commands_buffer[5] = Y
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(50)
+                commands_buffer[4] = 0x42
+                commands_buffer[5] = Z
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(2000)
+                break
+            case body_parts_enum.right_front:
+                commands_buffer[4] = 0x43
+                commands_buffer[5] = X
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(50)
+                commands_buffer[4] = 0x44
+                commands_buffer[5] = Y
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(50)
+                commands_buffer[4] = 0x45
+                commands_buffer[5] = Z
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(2000)
+                break
+            case body_parts_enum.right_hind:
+                commands_buffer[4] = 0x46
+                commands_buffer[5] = X
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(50)
+                commands_buffer[4] = 0x47
+                commands_buffer[5] = Y
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(50)
+                commands_buffer[4] = 0x48
+                commands_buffer[5] = Z
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(2000)
+                break
+            case body_parts_enum.left_hind:
+                commands_buffer[4] = 0x49
+                commands_buffer[5] = X
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(50)
+                commands_buffer[4] = 0x4A
+                commands_buffer[5] = Y
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(50)
+                commands_buffer[4] = 0x4B
+                commands_buffer[5] = Z
+                commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+                serial.writeBuffer(commands_buffer)
+                basic.pause(2000)
+                break
+        }
+    }
+
+
+    export function set_servo_angle(part: body_parts_enum, joint: turn_joint_enum, angle: number) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (part) {
+            case body_parts_enum.left_front:
+                if (joint == turn_joint_enum.upper) {
+                    commands_buffer[4] = 0x52
+                }
+                else if (joint == turn_joint_enum.middle) {
+                    commands_buffer[4] = 0x51
+                }
+                else {
+                    commands_buffer[4] = 0x50
+                }
+                break
+            case body_parts_enum.left_hind:
+                if (joint == turn_joint_enum.upper) {
+                    commands_buffer[4] = 0x5B
+                }
+                else if (joint == turn_joint_enum.middle) {
+                    commands_buffer[4] = 0x5A
+                }
+                else {
+                    commands_buffer[4] = 0x59
+                }
+                break
+            case body_parts_enum.right_front:
+                if (joint == turn_joint_enum.upper) {
+                    commands_buffer[4] = 0x55
+                }
+                else if (joint == turn_joint_enum.middle) {
+                    commands_buffer[4] = 0x54
+                }
+                else {
+                    commands_buffer[4] = 0x53
+                }
+                break
+            case body_parts_enum.right_hind:
+                if (joint == turn_joint_enum.upper) {
+                    commands_buffer[4] = 0x58
+                }
+                else if (joint == turn_joint_enum.middle) {
+                    commands_buffer[4] = 0x57
+                }
+                else {
+                    commands_buffer[4] = 0x56
+                }
+                break
+        }
+        switch (joint) {
+            case turn_joint_enum.upper:
+                commands_buffer[5] = angle
+                break
+            case turn_joint_enum.middle:
+                commands_buffer[5] = angle
+                break
+            case turn_joint_enum.below:
+                commands_buffer[5] = angle
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + commands_buffer[4] + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(2000)
+    }
+
+    export function move_xgo(movement: movement_enum, speed: number) {
+        let move_buffer = pins.createBuffer(9)
+        move_buffer[0] = 0x55
+        move_buffer[1] = 0x00
+        move_buffer[2] = 0x09
+        move_buffer[3] = 0x00
+        move_buffer[7] = 0x00
+        move_buffer[8] = 0xAA
+        if (speed > 100)
+            speed = 100
+        if (speed < 0)
+            speed = 0
+        switch (movement) {
+            case movement_enum.Forward:
+                move_buffer[4] = 0x30
+                move_buffer[5] = Math.map(speed, 0, 100, 128, 255)
+                move_buffer[6] = ~(0x09 + 0x00 + 0x30 + move_buffer[5])
+                break
+            case movement_enum.Backward:
+                move_buffer[4] = 0x30
+                move_buffer[5] = Math.map(speed, 0, 100, 128, 0)
+                move_buffer[6] = ~(0x09 + 0x00 + 0x30 + move_buffer[5])
+                break
+            case movement_enum.Left:
+                move_buffer[4] = 0x31
+                move_buffer[5] = Math.map(speed, 0, 100, 128, 0)
+                move_buffer[6] = ~(0x09 + 0x00 + 0x31 + move_buffer[5])
+                break
+            case movement_enum.Right:
+                move_buffer[4] = 0x31
+                move_buffer[5] = Math.map(speed, 0, 100, 128, 255)
+                move_buffer[6] = ~(0x09 + 0x00 + 0x31 + move_buffer[5])
+                break
+        }
+        serial.writeBuffer(move_buffer)
+    }
+
+    export function rotate(movement: rotate_enum, speed: number) {
+        let rotate_buffer = pins.createBuffer(9)
+        rotate_buffer[0] = 0x55
+        rotate_buffer[1] = 0x00
+        rotate_buffer[2] = 0x09
+        rotate_buffer[3] = 0x00
+        rotate_buffer[4] = 0x32
+        rotate_buffer[7] = 0x00
+        rotate_buffer[8] = 0xAA
+        if (speed > 100)
+            speed = 100
+        if (speed < 0)
+            speed = 0
+        switch (movement) {
+            case rotate_enum.Right:
+                rotate_buffer[5] = Math.map(speed, 0, 100, 128, 0)
+                rotate_buffer[6] = ~(0x09 + 0x00 + 0x32 + rotate_buffer[5])
+                break
+            case rotate_enum.Left:
+                rotate_buffer[5] = Math.map(speed, 0, 100, 128, 255)
+                rotate_buffer[6] = ~(0x09 + 0x00 + 0x32 + rotate_buffer[5])
+                break
+        }
+        serial.writeBuffer(rotate_buffer)
+    }
+
+    export function Manipulator_clampX(mm: number = 50) {
+        let commands_buffer = pins.createBuffer(9)
+        if (mm > 100)
+            mm = 100
+        if (mm < 0)
+            mm = 0
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x73
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        commands_buffer[5] = Math.map(mm, 0, 100, 0, 255)
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x73 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(3000)
+    }
+
+    export function Manipulator_clampZ(mm: number) {
+        let commands_buffer = pins.createBuffer(9)
+        if (mm > 100)
+            mm = 100
+        if (mm < 0)
+            mm = 0
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x74
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        commands_buffer[5] = Math.map(mm, 0, 100, 0, 255)
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x74 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(3000)
+    }
+
+    export function Manipulator_clamp(mm: number) {
+        let commands_buffer = pins.createBuffer(9)
+        if (mm > 255)
+            mm = 255
+        if (mm < 0)
+            mm = 0
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x71
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        commands_buffer[5] = mm
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x71 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(3000)
+    }
+
+    export function clmap_stable(on_off: clmap_stable_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x72
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (on_off) {
+            case clmap_stable_enum.Stable:
+                commands_buffer[5] = 0x01
+                break
+            case clmap_stable_enum.Unstable:
+                commands_buffer[5] = 0x00
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x72 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function performance_model_switch(on_off: switch_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x03
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        switch (on_off) {
+            case switch_enum.Turn_on:
+                commands_buffer[5] = 0x01
+                break
+            case switch_enum.Turn_off:
+                commands_buffer[5] = 0x00
+                break
+        }
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x03 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+    }
+
+    export function servo_setting_robotArm(on_off: servo_switch_enum) {
+        let commands_buffer = pins.createBuffer(9)
+        commands_buffer[0] = 0x55
+        commands_buffer[1] = 0x00
+        commands_buffer[2] = 0x09
+        commands_buffer[3] = 0x00
+        commands_buffer[4] = 0x20
+        commands_buffer[7] = 0x00
+        commands_buffer[8] = 0xAA
+        if (on_off == servo_switch_enum.Load)
+            commands_buffer[5] = 0x25
+        else
+            commands_buffer[5] = 0x15
+
+        commands_buffer[6] = ~(0x09 + 0x00 + 0x20 + commands_buffer[5])
+        serial.writeBuffer(commands_buffer)
+        basic.pause(50)
     }
 
     export function stopMoving() {
-        let data = Math.map(0, -100, 100, 0, 255)
-        writeCommand(0x09, 0x30, data)  // move forward/backward
-        writeCommand(0x09, 0x32, data)  // turn left/right
+        xgo.move_xgo(xgo.movement_enum.Forward, 0)
+        xgo.move_xgo(xgo.movement_enum.Left, 0)
+        xgo.rotate(xgo.rotate_enum.Left, 0)
     }
 }
 
-xgo.initXGOSerial(SerialPin.P14, SerialPin.P13)
+xgo.init_xgo_serial(SerialPin.P14, SerialPin.P13)
 
 
 //##########  END XGO  ##########//
@@ -759,56 +2093,98 @@ xgo.initXGOSerial(SerialPin.P14, SerialPin.P13)
 
 
 onDisplay(() => {
-    if (Wave.isLeader())
-        basic.showString("L");
-    else {
-        basic.showString("W")
-        basic.showNumber(Wave.defPosition())
-    }
-    basic.pause(500)
-    basic.showIcon(IconNames.Yes)
+	if (Wave.isLeader())
+		basic.showString( "L");
+	else {
+		basic.showString("W")
+		basic.showNumber(Wave.defPosition())
+	}
+	basic.pause(500)
+	basic.showIcon(IconNames.Yes)
 })
 
-enum Led {
-    //% block="the front left led"
-    //% block.loc.nl="de led links-voor"
-    FrontLeft = 1,
-    //% block="the rear left led"
-    //% block.loc.nl="de led links-achter"
-    RearLeft = 2,
-    //% block="the front right led"
-    //% block.loc.nl="de led rechts-voor"
-    FrontRight = 4,
-    //% block="the rear right led"
-    //% block.loc.nl="de led rechts-achter"
-    RearRight = 8,
-    //% block="the left leds"
-    //% block.loc.nl="de linker leds"
-    Left = 3,
-    //% block="the right leds"
-    //% block.loc.nl="de rechter leds"
-    Right = 12,
-    //% block="all leds"
-    //% block.loc.nl="alle leds"
-    All = 15,
+enum Movement {
+	//% block="forward""
+	//% block.loc.nl="vooruit"
+	Forward,
+	//% block="backward"
+	//% block.loc.nl="achteruit"
+	Backward,
+	//% block="to the left"
+	//% block.loc.nl="naar links"
+	Left,
+	//% block="to the right"
+	//% block.loc.nl="naar rechts"
+	Right
+}
+
+enum ArmPosition {
+	//% block="high up""
+	//% block.loc.nl="ver omhoog"
+	High, // X:40,Z90
+	//% block="straight to the front"
+	//% block.loc.nl="recht naar voren"
+	Front, // X:70,Z:80
+	//% block="low to the front"
+	//% block.loc.nl="laag naar voren"
+	Low, // X:90,Z:50
+	//% block="to the floor"
+	//% block.loc.nl="naar de vloer"
+	Floor // X:80,Z:10
+}
+
+enum ClampState {
+	//% block="close"
+	//% block.loc.nl="sluit"
+	Close,
+	//% block="open"
+	//% block.loc.nl="open"
+	Open
 }
 
 enum Performance {
-    //% block="not yet applicable"
-    //% block.loc.nl="nog niet aanwezig"
-    NotImplemented
+	//% block="stand up"
+	//% block.loc.nl="staan"
+	Stand,
+	//% block="lay down"
+	//% block.loc.nl="liggen"
+	Prone,
+	//% block="swing"
+	//% block.loc.nl="swingen"
+	Swing,
+	//% block="greet"
+	//% block.loc.nl="groeten"
+	Greet,
+	//% block="roll"
+	//% block.loc.nl="schudden"
+	Roll,
+	//% block="whirl"
+	//% block.loc.nl="wervelen"
+	Whirl,
+	//% block="crawl"
+	//% block.loc.nl="besluipen"
+	Crawl,
+	//% block="stretch"
+	//% block.loc.nl="uitrekken"
+	Stretch,
+	//% block="squat"
+	//% block.loc.nl="hurken"
+	Squat,
+	//% block="pee"
+	//% block.loc.nl="plassen"
+	Pee
 }
 
-//% color="#82200C" icon="\uf1b9"
-//% block="XGO Rider"
-//% block.loc.nl="XGO Rider"
-namespace XGoRider {
+//% color="#82200C" icon="\uf1b0"
+//% block="XGO Lite"
+//% block.loc.nl="XGO Lite"
+namespace XGoLite {
 
     //////////////
     // MESSAGES //
     //////////////
 
-    // The XGo Rider is programmed by means of messages.
+    // The XGo Lite is programmed by means of messages.
     // The available messages are enumerated in 'Message'
     // and are executed by the routine 'handleMessage'.
 
@@ -819,8 +2195,10 @@ namespace XGoRider {
         Pause,          // pause the program until Message.Continue
         Continue,       // continue the program after Message.Pause
 
-        Forward,        // move in the specified direction
+        Forward,        // move in the specified movement
         Backward,
+        Left,
+        Right,
 
         SetSpeed,       // set the speed between 0 and 100 %
         SpeedUp,        // speeding up by 10 %
@@ -830,20 +2208,33 @@ namespace XGoRider {
         TurnRight,      // the rotation will be stopped by
         TurnOff,        // a movement message or the stop message
 
-        Stretch,        // stretch or shrink the body
-        Angle,          // angle of the wheels to the floor
+        ArmHigh,        // X:40, Z:90
+        ArmFront,       // X:70, Z:80
+        ArmLow,         // X:90, Z:50
+        ArmFloor,       // X:80, Z:10
 
-        Leds,           // set the color of the leds
+        ClampOpen,      // open the clamp to position CLAMPOPEN
+        ClampClose,     // close the clamp to position CLAMPCLOSED
 
-        NotImplemented  // standard actions
+        Stand,          // perform an XGo standard performances
+        Prone,
+        Sit,
+        Swing,
+        Greet,
+        Roll,
+        Whirl,
+        Crawl,
+        Stretch,
+        Squat,
+        Pee
     }
 
     let MESSAGE: number = -1
     let PAUSE: boolean = false
 
-    ///////////////////////////////
-    // CONTROLLING THE XGO RIDER //
-    ///////////////////////////////
+    //////////////////////////////
+    // CONTROLLING THE XGO LITE //
+    //////////////////////////////
 
     let MOVEMENT: number = Message.Stop // the latest movement message
 
@@ -853,22 +2244,12 @@ namespace XGoRider {
     // Message: 1000 to 1100
     let SPEED: number = 50
 
-    // Stretch range:
-    // --------------
-    // Value: -20 to 20 (in mm)
-    // Message: 500 to 540
-    let STRETCH: number = 0
-
-    // Angle range:
-    // --------------
-    // Value: -100 to 100 (in degr)
-    // Message: 700 to 800
-    let ANGLE: number = 0
-
-    // Led colors:
+    // Clamp range
     // -----------
-    let LEDS: number = 0
-    let COLOR: Color = Color.Black
+    // Minimum value: 0 (equal to 53.0 mm)
+    // Maximum value: 255 (equal to 22.5 mm)
+    let CLAMPCLOSED: number = 255
+    let CLAMPOPEN: number = 0
 
     ///////////////////////////////
     // MESSAGE HANDLING ROUTINES //
@@ -892,15 +2273,6 @@ namespace XGoRider {
             MESSAGE = Message.Wait
         }
 
-        // Instead of 'Message.Led', this message is submitted by
-        // the calculated value of '2000 + Led value * 20 + Color value'.
-        if (MESSAGE >= 2000) {
-            let val = MESSAGE - 2000
-            LEDS = Math.floor(val / 30)
-            COLOR = val - LEDS * 30
-            MESSAGE = Message.Leds
-        }
-
         // Instead of 'Message.Speed', this message is submitted by
         // the calculated value of '1000 + required speed'.
         if (MESSAGE >= 1000) {
@@ -909,28 +2281,12 @@ namespace XGoRider {
             MESSAGE = MOVEMENT
         }
 
-        // Instead of 'Message.Angle', this message is submitted by
-        // the calculated value of '600 + required angle'.
-        if (MESSAGE >= 600) {
-            ANGLE = MESSAGE - 700
-            // reactivate the latest movement message
-            MESSAGE = Message.Angle
-        }
-
-        // Instead of 'Message.Stretch', this message is submitted by
-        // the calculated value of '500 + required height'.
-        if (MESSAGE >= 500) {
-            STRETCH = MESSAGE - 520
-            // reactivate the latest movement message
-            MESSAGE = Message.Stretch
-        }
-
         // If needed, pause a while to get a wave effect
-        // Message.Stop is excluded from the wave behaviour.
+		// Message.Stop is excluded from the wave behaviour.
         if (Wave.readWait() > 0 && MESSAGE != Message.Stop)
             basic.pause(Wave.readWait())
 
-        // Handle the messages
+		// Handle the messages
         switch (MESSAGE) {
             case Message.Stop:
                 xgo.stopMoving()
@@ -940,7 +2296,7 @@ namespace XGoRider {
                 break
             case Message.Pause:
                 xgo.stopMoving()
-                PAUSE = true
+				PAUSE = true
                 break
             case Message.Continue:
                 PAUSE = false
@@ -950,27 +2306,39 @@ namespace XGoRider {
             //
             case Message.Forward:
                 MOVEMENT = Message.Forward
-                xgo.rotateRider(Rotate.Clockwise, 0)
-                xgo.moveRider(Move.Forward, SPEED)
+                xgo.move_xgo(xgo.movement_enum.Left, 0)
+                xgo.rotate(xgo.rotate_enum.Left, 0)
+                xgo.move_xgo(xgo.movement_enum.Forward, SPEED)
                 break
             case Message.Backward:
                 MOVEMENT = Message.Backward
-                xgo.rotateRider(Rotate.Clockwise, 0)
-                xgo.moveRider(Move.Backward, SPEED)
+                xgo.move_xgo(xgo.movement_enum.Left, 0)
+                xgo.rotate(xgo.rotate_enum.Left, 0)
+                xgo.move_xgo(xgo.movement_enum.Backward, SPEED)
+                break
+            case Message.Left:
+                MOVEMENT = Message.Left
+                // left and right seem to have switched
+                xgo.move_xgo(xgo.movement_enum.Right, SPEED)
+                break
+            case Message.Right:
+                MOVEMENT = Message.Right
+                // left and right seem to have switched
+                xgo.move_xgo(xgo.movement_enum.Left, SPEED)
                 break
             case Message.TurnLeft:
                 MOVEMENT = Message.TurnLeft
-                xgo.moveRider(Move.Forward, 0)
-                xgo.rotateRider(Rotate.AntiClockwise, SPEED)
+                xgo.move_xgo(xgo.movement_enum.Left, 0)
+                xgo.rotate(xgo.rotate_enum.Left, 100)
                 break
             case Message.TurnRight:
                 MOVEMENT = Message.TurnRight
-                xgo.moveRider(Move.Forward, 0)
-                xgo.rotateRider(Rotate.Clockwise, SPEED)
+                xgo.move_xgo(xgo.movement_enum.Left, 0)
+                xgo.rotate(xgo.rotate_enum.Right, 100)
                 break
             case Message.TurnOff:
                 MOVEMENT = Message.TurnOff
-                xgo.rotateRider(Rotate.Clockwise, 0)
+                xgo.rotate(xgo.rotate_enum.Left, 0)
                 break
             case Message.SpeedUp:
                 SPEED += 10
@@ -986,23 +2354,45 @@ namespace XGoRider {
                 MESSAGE = MOVEMENT
                 handleMessage()
                 break
-            case Message.Stretch:
-                xgo.setHeight(STRETCH)
-                break
-            case Message.Angle:
-                xgo.setAngle(ANGLE)
-                break
             //
-            // LED CONTROL
+            // ARM CONTROL
             //
-            case Message.Leds:
-                xgo.ledColor(LEDS, COLOR)
-                break;
+            case Message.ArmHigh:
+                xgo.Manipulator_clampX(40)
+                xgo.Manipulator_clampZ(90)
+                break
+            case Message.ArmFront:
+                xgo.Manipulator_clampX(70)
+                xgo.Manipulator_clampZ(80)
+                break
+            case Message.ArmLow:
+                xgo.Manipulator_clampX(90)
+                xgo.Manipulator_clampZ(50)
+                break
+            case Message.ArmFloor:
+                xgo.Manipulator_clampX(80)
+                xgo.Manipulator_clampZ(10)
+                break
+            case Message.ClampClose:
+                xgo.Manipulator_clamp(CLAMPCLOSED)
+                break
+            case Message.ClampOpen:
+                xgo.Manipulator_clamp(CLAMPOPEN)
+                break
             //
             // STANDARD ACTIONS
             //
-            case Message.NotImplemented:
-                break
+            case Message.Stand: xgo.execution_action(xgo.action_enum.Default_posture); break;
+            case Message.Prone: xgo.body_height(0); xgo.servo_switch(xgo.servo_switch_enum.Unload); break;
+            case Message.Sit: xgo.execution_action(xgo.action_enum.Sit_down); break;
+            case Message.Pee: xgo.execution_action(xgo.action_enum.Pee); break;
+            case Message.Swing: xgo.execution_action(xgo.action_enum.Play_pendulum); break;
+            case Message.Greet: xgo.execution_action(xgo.action_enum.Wave); break;
+            case Message.Roll: xgo.execution_action(xgo.action_enum.Twirl_Roll); break;
+            case Message.Whirl: xgo.execution_action(xgo.action_enum.Whirl); break;
+            case Message.Crawl: xgo.execution_action(xgo.action_enum.Crawl_forward); break;
+            case Message.Stretch: xgo.execution_action(xgo.action_enum.Stretch_oneself); break;
+            case Message.Squat: xgo.execution_action(xgo.action_enum.Squat); break;
         }
         MESSAGE = -1
     }
@@ -1011,47 +2401,47 @@ namespace XGoRider {
     // PROGRAMMING BLOCKS //
     ////////////////////////
 
-    //% subcategory="Effecten" color="#82705C"
-    //% block="turn %led to %color"
-    //% block.loc.nl="maak %led %color"
-    export function led(led: Led, color: Color) {
-        MESSAGE = 2000 + led * 30 + color
+    //% subcategory="Robotarm" color="#82705C"
+    //% block="clamp size: closes to %closed mm and opens to %open mm width"
+    //% block.loc.nl="grijper afmeting: sluit tot %closed mm en opent tot %open mm breedte"
+    //% closed.min=25 closed.max=50.0 closed.defl=25
+    //% open.min=25 open.max=50.0 open.defl=50
+    // The motor takes a value range of 255 (closed) to 0 (open).
+    // The input in mm should be multiplied by (255-0)/(50-25) therefore.
+    export function setClampRange(closed: number, open: number) {
+        closed = (closed - 25) * 10.2
+        open = (open - 25) * 10.2
+        if (open > closed) {
+            // input was inverted
+            let n = closed
+            closed = open
+            open = n
+        }
+        CLAMPOPEN = open
+        CLAMPCLOSED = closed
+    }
+
+    //% subcategory="Robotarm" color="#82705C"
+    //% block="%state the clamp"
+    //% block.loc.nl="%state de grijper"
+    export function clamp(state: ClampState) {
+        switch (state) {
+            case ClampState.Open: MESSAGE = Message.ClampOpen; break;
+            case ClampState.Close: MESSAGE = Message.ClampClose; break;
+        }
         if (!PAUSE) handleMessage()
     }
 
-    //% subcategory="Effecten" color="#82705C"
-    //% block="stretch %height mm"
-    //% block.loc.nl="strek %height mm"
-    //% height.min=0 height.max=20 height.defl=0
-    export function stretch(height: number) {
-        MESSAGE = 520 + height
-        if (!PAUSE) handleMessage()
-    }
-
-    //% subcategory="Effecten" color="#82705C"
-    //% block="shrink %height mm"
-    //% block.loc.nl="krimp %height mm"
-    //% height.min=0 height.max=20 height.defl=0
-    export function shrink(height: number) {
-        MESSAGE = 520 - height
-        if (!PAUSE) handleMessage()
-    }
-
-    //% subcategory="Effecten" color="#82705C"
-    //% block="lean %angle ° to the left"
-    //% block.loc.nl="hel %angle ° over naar links"
-    //% angle.min=0 angle.max=45 angle.defl=0
-    export function leanLeft(angle: number) {
-        MESSAGE = 700 + 2 * angle
-        if (!PAUSE) handleMessage()
-    }
-
-    //% subcategory="Effecten" color="#82705C"
-    //% block="lean %angle ° to the right"
-    //% block.loc.nl="hel %angle ° over naar rechts"
-    //% angle.min=0 angle.max=45 angle.defl=0
-    export function leanRight(angle: number) {
-        MESSAGE = 700 - 2 * angle
+    //% subcategory="Robotarm" color="#82705C"
+    //% block="move the arm %move"
+    //% block.loc.nl="beweeg de arm %move"
+    export function moveArm(position: ArmPosition) {
+        switch (position) {
+            case ArmPosition.High: MESSAGE = Message.ArmHigh; break;
+            case ArmPosition.Front: MESSAGE = Message.ArmFront; break;
+            case ArmPosition.Low: MESSAGE = Message.ArmLow; break;
+            case ArmPosition.Floor: MESSAGE = Message.ArmFloor; break;
+        }
         if (!PAUSE) handleMessage()
     }
 
@@ -1059,20 +2449,38 @@ namespace XGoRider {
     //% block.loc.nl="einde pauze"
     export function pauseOff() {
         MESSAGE = Message.Continue
-        handleMessage()
+		handleMessage()
     }
 
     //% block="pause"
     //% block.loc.nl="begin pauze"
     export function pauseOn() {
         MESSAGE = Message.Pause
-        handleMessage()
+		handleMessage()
     }
 
     //% block="stop"
     //% block.loc.nl="stop"
     export function stop() {
         MESSAGE = Message.Stop
+        if (!PAUSE) handleMessage()
+    }
+
+    //% block="perform the %action"
+    //% block.loc.nl="ga %action"
+    export function perform(action: Performance) {
+        switch (action) {
+            case Performance.Stand: MESSAGE = Message.Stand; break;
+            case Performance.Prone: MESSAGE = Message.Prone; break;
+            case Performance.Swing: MESSAGE = Message.Swing; break;
+            case Performance.Greet: MESSAGE = Message.Greet; break;
+            case Performance.Roll: MESSAGE = Message.Roll; break;
+            case Performance.Whirl: MESSAGE = Message.Whirl; break;
+            case Performance.Crawl: MESSAGE = Message.Crawl; break;
+            case Performance.Stretch: MESSAGE = Message.Stretch; break;
+            case Performance.Squat: MESSAGE = Message.Squat; break;
+            case Performance.Pee: MESSAGE = Message.Pee; break;
+        }
         if (!PAUSE) handleMessage()
     }
 
@@ -1086,12 +2494,14 @@ namespace XGoRider {
         if (!PAUSE) handleMessage()
     }
 
-    //% block="ride %movement"
-    //% block.loc.nl="rijd %movement"
-    export function move(movement: Move) {
+    //% block="walk %movement"
+    //% block.loc.nl="loop %movement"
+    export function move(movement: Movement) {
         switch (movement) {
-            case Move.Forward: MESSAGE = Message.Forward; break;
-            case Move.Backward: MESSAGE = Message.Backward; break;
+            case Movement.Forward: MESSAGE = Message.Forward; break;
+            case Movement.Backward: MESSAGE = Message.Backward; break;
+            case Movement.Left: MESSAGE = Message.Left; break;
+            case Movement.Right: MESSAGE = Message.Right; break;
         }
         if (!PAUSE) handleMessage()
     }
@@ -1103,5 +2513,4 @@ namespace XGoRider {
         MESSAGE = 1000 + speed;
         if (!PAUSE) handleMessage()
     }
-
 }
