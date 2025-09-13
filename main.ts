@@ -19,11 +19,9 @@ function onMessage(code: msghandler) {
 }
 
 radio.onReceivedNumber(function (value: number) {
-basic.showNumber(0)
+basic.showNumber(value)
     if (WAVE) basic.pause(WAVEWAIT)
-basic.showNumber(1)
     if (messageHandler) messageHandler(value)
-basic.showNumber(2)
 })
 
 let displayHandler: handler
@@ -405,6 +403,7 @@ namespace Gamepad {
     }
 
     onMessage(function (value: number) {
+basic.showNumber(value)
         if (value >= 1000)
             handleJoystick(value - 1000)
         else {
