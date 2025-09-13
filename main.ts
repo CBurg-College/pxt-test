@@ -8,23 +8,23 @@
 
 let GROUP = 1
 let WAVE = false
-let WAITWAVE = 1000
+let WAVEWAIT = 1000
 
 type handler = () => void
 
 type msghandler = (value: number) => void
 let messageHandler: msghandler
-function onMessage(code: () => void) {
+function onMessage(code: msghandler) {
     messageHandler = code;
 }
 
 radio.onReceivedNumber(function (value: number) {
-    if (WAVE) basic.pause(WAITWAVE)
+    if (WAVE) basic.pause(WAVEWAIT)
     if (messageHandler) messageHandler(value)
 })
 
 let displayHandler: handler
-function onDisplay(code: () => void) {
+function onDisplay(code: handler) {
     displayHandler = code;
 }
 
@@ -2029,17 +2029,6 @@ xgo.init_xgo_serial(SerialPin.P14, SerialPin.P13)
 
 
 
-onDisplay(() => {
-	if (Wave.isLeader())
-		basic.showString( "L");
-	else {
-		basic.showString("W")
-		basic.showNumber(Wave.defPosition())
-	}
-	basic.pause(500)
-	basic.showIcon(IconNames.Yes)
-})
-
 enum Movement {
 	//% block="forward""
 	//% block.loc.nl="vooruit"
@@ -2209,11 +2198,6 @@ namespace XGoLite {
             // reactivate the latest movement message
             MESSAGE = MOVEMENT
         }
-
-        // If needed, pause a while to get a wave effect
-		// Message.Stop is excluded from the wave behaviour.
-        if (Wave.readWait() > 0 && MESSAGE != Message.Stop)
-            basic.pause(Wave.readWait())
 
 		// Handle the messages
         switch (MESSAGE) {
