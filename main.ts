@@ -943,7 +943,7 @@ namespace XGoRider {
 
     //% subcategory="Effecten" color="#82705C"
     //% block="shrink %height mm"
-    //% block.loc.nl="krimp %height mm"
+    //% block.loc.nl="buk %height mm"
     //% height.min=0 height.max=20 height.defl=0
     export function shrink(height: number) {
         MESSAGE = 520 - height
