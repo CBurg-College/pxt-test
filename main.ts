@@ -273,76 +273,70 @@ function blueValue(rgb: number): number {
 //##################//
 //////////////////////
 
+enum Joystick {
+    //% block="none"
+    //% block.loc.nl="geen"
+    None,
+    //% block="up"
+    //% block.loc.nl="omhoog"
+    Up,
+    //% block="right up"
+    //% block.loc.nl="rechts omhoog"
+    UpRight,
+    //% block="right"
+    //% block.loc.nl="rechts"
+    Right,
+    //% block="right down"
+    //% block.loc.nl="rechts omlaag"
+    DownRight,
+    //% block="down"
+    //% block.loc.nl="omlaag"
+    Down,
+    //% block="left down"
+    //% block.loc.nl="links omlaag"
+    DownLeft,
+    //% block="left"
+    //% block.loc.nl="links"
+    Left,
+    //% block="left up"
+    //% block.loc.nl="links omhoog"
+    UpLeft,
+}
+
+enum Power {
+    //% block="Full power"
+    //% block.loc.nl="volle kracht"
+    Full,
+    //% block="Half power"
+    //% block.loc.nl="halve kracht"
+    Half,
+    //% block="Low power"
+    //% block.loc.nl="weinig kracht"
+    Low,
+}
+
 //% color="#C4C80E" icon="\uf11b"
 //% block="Gamepad"
 //% block.loc.nl="Gamepad"
 namespace Gamepad {
 
-    export enum Joystick {
-        //% block="none"
-        //% block.loc.nl="geen"
-        None,
+    enum Button {
         //% block="up"
         //% block.loc.nl="omhoog"
         Up,
-        //% block="right up"
-        //% block.loc.nl="rechts omhoog"
-        UpRight,
-        //% block="right"
-        //% block.loc.nl="rechts"
-        Right,
-        //% block="right down"
-        //% block.loc.nl="rechts omlaag"
-        DownRight,
         //% block="down"
         //% block.loc.nl="omlaag"
         Down,
-        //% block="left down"
-        //% block.loc.nl="links omlaag"
-        DownLeft,
         //% block="left"
         //% block.loc.nl="links"
         Left,
-        //% block="left up"
-        //% block.loc.nl="links omhoog"
-        UpLeft
-    }
-
-    let JSANGLE = 0
-    let JSPOWER = 0
-    let JSDIR = Joystick.None
-
-    export enum Power {
-        //% block="Full power"
-        //% block.loc.nl="volle kracht"
-        Full,
-        //% block="Half full power"
-        //% block.loc.nl="halfvolle kracht"
-        HalfFull,
-        //% block="Half power"
-        //% block.loc.nl="halve kracht"
-        Half,
-        //% block="Low power"
-        //% block.loc.nl="weinig kracht"
-        HalfLow,
-        //% block="without power"
-        //% block.loc.nl="zonder kracht"
-        Low
-    }
-    export enum Button {
-        //% block="up"
-        //% block.loc.nl="omhoog"
-        Up, //P12
-        //% block="down"
-        //% block.loc.nl="omlaag"
-        Down, //P15 
-        //% block="left"
-        //% block.loc.nl="links"
-        Left, //P13
         //% block="right"
         //% block.loc.nl="rechts"
-        Right //P14
+        Right,
     }
+
+    let JSANGLE = Joystick.None
+    let JSPOWER = 0
 
     let BUTTONMAX = 4
 
@@ -371,44 +365,24 @@ namespace Gamepad {
     let released3Handler: handler
     let released4Handler: handler
 
-    function handleJoystick(value: number) {
-        JSPOWER = Math.floor(value / 1000)
-        JSANGLE = value - JSPOWER * 1000
-        let dir: Joystick
-
-        if (JSPOWER) {
-            if (JSANGLE > 338 || JSANGLE < 23) dir = Joystick.Up
-            if (JSANGLE > 23 && JSANGLE < 68) dir = Joystick.UpRight
-            if (JSANGLE > 68 && JSANGLE < 113) dir = Joystick.Right
-            if (JSANGLE > 113 && JSANGLE < 158) dir = Joystick.DownRight
-            if (JSANGLE > 158 && JSANGLE < 203) dir = Joystick.Down
-            if (JSANGLE > 203 && JSANGLE < 248) dir = Joystick.DownLeft
-            if (JSANGLE > 248 && JSANGLE < 293) dir = Joystick.Left
-            if (JSANGLE > 293 && JSANGLE < 338) dir = Joystick.UpLeft
-        }
-        else
-            dir = Joystick.None
-
-        if (dir == JSDIR) return;
-        JSDIR = dir
-
-        if ((JSDIR == Joystick.None) && joystickXHandler)
+    function handleJoystick(value: Joystick) {
+        if ((value == Joystick.None) && joystickXHandler)
             joystickXHandler()
-        if ((JSDIR == Joystick.Up) && joystickNHandler)
+        if ((value == Joystick.Up) && joystickNHandler)
             joystickNHandler()
-        if ((JSDIR == Joystick.UpRight) && joystickNEHandler)
+        if ((value == Joystick.UpRight) && joystickNEHandler)
             joystickNEHandler()
-        if ((JSDIR == Joystick.Right) && joystickEHandler)
+        if ((value == Joystick.Right) && joystickEHandler)
             joystickEHandler()
-        if ((JSDIR == Joystick.DownRight) && joystickSEHandler)
+        if ((value == Joystick.DownRight) && joystickSEHandler)
             joystickSEHandler()
-        if ((JSDIR == Joystick.Down) && joystickSHandler)
+        if ((value == Joystick.Down) && joystickSHandler)
             joystickSHandler()
-        if ((JSDIR == Joystick.DownLeft) && joystickSWHandler)
+        if ((value == Joystick.DownLeft) && joystickSWHandler)
             joystickSWHandler()
-        if ((JSDIR == Joystick.Left) && joystickWHandler)
+        if ((value == Joystick.Left) && joystickWHandler)
             joystickWHandler()
-        if ((JSDIR == Joystick.UpLeft) && joystickNWHandler)
+        if ((value == Joystick.UpLeft) && joystickNWHandler)
             joystickNWHandler()
     }
 
@@ -509,23 +483,13 @@ namespace Gamepad {
     //% block="joystick-power"
     //% block.loc.nl="joystick-kracht"
     export function readPower(): Power {
-        let pwr: Power
-        if (JSPOWER > 80) pwr = Power.Full
-        else
-            if (JSPOWER > 60) pwr = Power.HalfFull
-            else
-                if (JSPOWER > 40) pwr = Power.Half
-                else
-                    if (JSPOWER > 20) pwr = Power.HalfLow
-                    else
-                        pwr = Power.Low
-        return pwr
+        return JSPOWER
     }
 
     //% block="joystick Joystick"
     //% block.loc.nl="joystick-richting"
     export function readJoystick(): Joystick {
-        return JSDIR
+        return JSANGLE
     }
 }
 
