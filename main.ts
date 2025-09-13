@@ -365,24 +365,26 @@ namespace Gamepad {
     let released3Handler: handler
     let released4Handler: handler
 
-    function handleJoystick(value: Joystick) {
-        if ((value == Joystick.None) && joystickXHandler)
+    function handleJoystick(value: number) {
+        JSPOWER = Math.floor(value / 1000)
+        JSANGLE = value - JSPOWER * 1000
+        if ((JSANGLE == Joystick.None) && joystickXHandler)
             joystickXHandler()
-        if ((value == Joystick.Up) && joystickNHandler)
+        if ((JSANGLE == Joystick.Up) && joystickNHandler)
             joystickNHandler()
-        if ((value == Joystick.UpRight) && joystickNEHandler)
+        if ((JSANGLE == Joystick.UpRight) && joystickNEHandler)
             joystickNEHandler()
-        if ((value == Joystick.Right) && joystickEHandler)
+        if ((JSANGLE == Joystick.Right) && joystickEHandler)
             joystickEHandler()
-        if ((value == Joystick.DownRight) && joystickSEHandler)
+        if ((JSANGLE == Joystick.DownRight) && joystickSEHandler)
             joystickSEHandler()
-        if ((value == Joystick.Down) && joystickSHandler)
+        if ((JSANGLE == Joystick.Down) && joystickSHandler)
             joystickSHandler()
-        if ((value == Joystick.DownLeft) && joystickSWHandler)
+        if ((JSANGLE == Joystick.DownLeft) && joystickSWHandler)
             joystickSWHandler()
-        if ((value == Joystick.Left) && joystickWHandler)
+        if ((JSANGLE == Joystick.Left) && joystickWHandler)
             joystickWHandler()
-        if ((value == Joystick.UpLeft) && joystickNWHandler)
+        if ((JSANGLE == Joystick.UpLeft) && joystickNWHandler)
             joystickNWHandler()
     }
 
