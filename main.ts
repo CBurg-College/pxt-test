@@ -270,6 +270,15 @@ function blueValue(rgb: number): number {
 //##################//
 //////////////////////
 
+enum JosystickMode {
+    //% block="measure the power"
+    //% block.loc.nl="meet de kracht"
+    Power,
+    //% block="direction solely"
+    //% block.loc.nl="alleen de richting"
+    Direction,
+}
+
 enum Joystick {
     //% block="no direction"
     //% block.loc.nl="geen richting"
@@ -335,6 +344,7 @@ enum Key {
 //% block.loc.nl="Gamepad"
 namespace Gamepad {
 
+    let JSMODE = JosystickMode.Power
     let JSANGLE = Joystick.None
     let JSPOWER = 0
 
@@ -368,7 +378,10 @@ namespace Gamepad {
     function handleJoystick(value: number) {
 
         JSPOWER = Math.floor(value / 1000)
-        JSANGLE = value - JSPOWER * 1000
+        let angle = value - JSPOWER * 1000
+        if (JSMODE == JosystickMode.Direction && angle == JSANGLE)
+            return
+        JSANGLE = angle
         if ((JSANGLE == Joystick.None) && joystickXHandler)
             joystickXHandler()
         if ((JSANGLE == Joystick.Up) && joystickNHandler)
