@@ -19,8 +19,11 @@ function onMessage(code: msghandler) {
 }
 
 radio.onReceivedNumber(function (value: number) {
+basic.showNumber(0)
     if (WAVE) basic.pause(WAVEWAIT)
+basic.showNumber(1)
     if (messageHandler) messageHandler(value)
+basic.showNumber(2)
 })
 
 let displayHandler: handler
