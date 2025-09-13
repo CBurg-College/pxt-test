@@ -366,7 +366,7 @@ namespace Gamepad {
     let released4Handler: handler
 
     function handleJoystick(value: number) {
-basic.showNumber(value)
+
         JSPOWER = Math.floor(value / 1000)
         JSANGLE = value - JSPOWER * 1000
         if ((JSANGLE == Joystick.None) && joystickXHandler)
