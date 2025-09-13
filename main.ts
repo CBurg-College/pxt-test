@@ -301,15 +301,18 @@ enum Joystick {
 }
 
 enum Power {
-    //% block="Full power"
-    //% block.loc.nl="volle kracht"
-    Full,
-    //% block="Half power"
-    //% block.loc.nl="halve kracht"
-    Half,
+    //% block="No power"
+    //% block.loc.nl="zonder kracht"
+    None,
     //% block="Low power"
     //% block.loc.nl="weinig kracht"
     Low,
+    //% block="Half power"
+    //% block.loc.nl="halve kracht"
+    Half,
+    //% block="Full power"
+    //% block.loc.nl="volle kracht"
+    Full,
 }
 
 enum Key {
@@ -437,7 +440,7 @@ namespace Gamepad {
     }
 
     //% color="#FFC000"
-    //% block="when the joystick Joystick is %dir"
+    //% block="when the joystick direction is %dir"
     //% block.loc.nl="wanneer de joystick richting %dir is"
     export function onJoystick(dir: Joystick, code: () => void): void {
         switch (dir) {
@@ -487,6 +490,18 @@ namespace Gamepad {
     //% block.loc.nl="joystick-richting"
     export function readJoystick(): Joystick {
         return JSANGLE
+    }
+
+    //% block="%power"
+    //% block.loc.nl="%power"
+    export function defPower(power: Power): Power {
+        return power
+    }
+
+    //% block="%joystick"
+    //% block.loc.nl="%joystick"
+    export function defJoystick(joystick: Joystick): Joystick {
+        return joystick
     }
 }
 
