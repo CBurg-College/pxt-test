@@ -9,7 +9,6 @@
     "files": [
         "main.blocks",
         "main.ts",
-        "https://github.com/CBurg-College/pxt-gamepad/main.ts",
         "README.md"
     ],
     "testFiles": [
