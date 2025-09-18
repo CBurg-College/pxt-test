@@ -9,6 +9,7 @@
     "files": [
         "main.blocks",
         "main.ts",
+        "https://github.com/CBurg-College/pxt-test",
         "README.md"
     ],
     "testFiles": [
